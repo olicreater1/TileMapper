@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<div class="center-content">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tile Mapper</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="banner">
+  <h1>Tile Mapper</h1>
+  </div>
+  <h1>Input Image</h1><input type="file" id="tileUploader" multiple accept="image/*">
+  <div>
+  <button type="button" onclick="savePalette()">Save Palette</button>
+  <h1>Import Palette</h1><input type="file" id="paletteLoader" accept="application/json">
+  <h1>Import CSV</h1><input type="file" id="csvLoader" accept=".csv">
+  <script>
+  document.getElementById('paletteLoader').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = () => loadPalette(JSON.parse(reader.result));
+    reader.readAsText(file);
+  });
+
+  document.getElementById('csvLoader').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = () => loadCSV(reader.result);
+    reader.readAsText(file);
+  });
+  </script>
+
+  <div id="tilePalette"></div>
+
+  <canvas id="canvas" width="512" height="384"></canvas>
+  <button type="button" onclick="exportCSV()">Export CSV</button>
+
+  <label for="colsInput">Columns:</label>
+  <input type="number" id="colsInput" value="16" min="1" max="100" style="width:50px;">
+  <label for="rowsInput">Rows:</label>
+  <input type="number" id="rowsInput" value="12" min="1" max="100" style="width:50px;">
+  <button type="button" id="resizeMapBtn">Resize Map</button>
+
+  <script src="tiles.js"></script>
+  <script src="export.js"></script>
+  <script src="app.js"></script>
+  <script src="load.js"></script>
+  <script>
+    document.getElementById('tileUploader').addEventListener('change', function(event) {
+      const files = Array.from(event.target.files);
+      files.forEach((file, idx) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            const tileID = tiles.length;
+            tiles.push({ img: img, csvValue: '' }); // Store as object
+            createTileElement(img, tileID, '');
+            draw();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    document.getElementById('resizeMapBtn').addEventListener('click', function() {
+      const newCols = parseInt(document.getElementById('colsInput').value, 10);
+      const newRows = parseInt(document.getElementById('rowsInput').value, 10);
+      if (newCols > 0 && newRows > 0) {
+        resizeMap(newRows, newCols);
+      }
+    });
+  </script>
+</body>
+</html>
+</div>
